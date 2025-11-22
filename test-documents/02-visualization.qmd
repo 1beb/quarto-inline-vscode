@@ -1,0 +1,32 @@
+---
+title: "mtcars Visualizations"
+format: html
+---
+
+## Plotting mtcars Data
+
+```{r}
+# Simple scatter plot
+plot(mtcars$wt, mtcars$mpg,
+     xlab = "Weight (1000 lbs)",
+     ylab = "Miles per Gallon",
+     main = "MPG vs Weight")
+```
+
+```{r}
+# Histogram of MPG
+hist(mtcars$mpg,
+     breaks = 10,
+     col = "skyblue",
+     main = "Distribution of MPG",
+     xlab = "Miles per Gallon")
+```
+
+```{r}
+# Boxplot by cylinder
+boxplot(mpg ~ cyl, data = mtcars,
+        xlab = "Number of Cylinders",
+        ylab = "Miles per Gallon",
+        main = "MPG by Cylinder Count",
+        col = c("lightblue", "lightgreen", "lightcoral"))
+```

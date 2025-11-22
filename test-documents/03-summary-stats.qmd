@@ -1,0 +1,34 @@
+---
+title: "mtcars Summary Statistics"
+format: html
+---
+
+## Comprehensive Analysis
+
+```{r}
+# Load dataset
+data(mtcars)
+str(mtcars)
+```
+
+```{r}
+# Correlation between weight and MPG
+cor(mtcars$wt, mtcars$mpg)
+```
+
+```{r}
+# Group statistics by transmission type
+aggregate(cbind(mpg, hp, wt) ~ am, data = mtcars, FUN = mean)
+```
+
+```{r}
+# Create a simple linear model
+model <- lm(mpg ~ wt + hp, data = mtcars)
+summary(model)
+```
+
+```{r}
+# Check for errors - intentional
+print("Testing error handling:")
+sqrt(-1)
+```

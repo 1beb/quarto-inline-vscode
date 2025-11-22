@@ -1,0 +1,29 @@
+---
+title: "Basic mtcars Analysis"
+format: html
+---
+
+## Introduction
+
+Basic exploration of the mtcars dataset.
+
+```{r}
+# Load and examine the mtcars dataset
+data(mtcars)
+head(mtcars)
+```
+
+```{r}
+# Get dimensions
+dim(mtcars)
+```
+
+```{r}
+# Summary statistics
+summary(mtcars$mpg)
+```
+
+```{r}
+# Calculate mean MPG by number of cylinders
+aggregate(mpg ~ cyl, data = mtcars, FUN = mean)
+```
