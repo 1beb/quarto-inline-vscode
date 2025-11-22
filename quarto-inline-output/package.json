@@ -1,0 +1,74 @@
+{
+  "name": "quarto-inline-output",
+  "displayName": "Quarto Inline Output",
+  "description": "Display code chunk outputs inline in Quarto documents",
+  "version": "0.1.0",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:quarto",
+    "onLanguage:markdown"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "notebooks": [
+      {
+        "type": "quarto-notebook",
+        "displayName": "Quarto Notebook",
+        "selector": [
+          {
+            "filenamePattern": "*.qmd"
+          }
+        ]
+      }
+    ],
+    "commands": [
+      {
+        "command": "quarto-inline-output.openAsNotebook",
+        "title": "Quarto: Open as Notebook"
+      },
+      {
+        "command": "quarto-inline-output.openAsText",
+        "title": "Quarto: Open as Text"
+      },
+      {
+        "command": "quarto-inline-output.runChunk",
+        "title": "Run Quarto Chunk"
+      },
+      {
+        "command": "quarto-inline-output.refresh",
+        "title": "Refresh Quarto Code Lenses"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "quarto-inline-output.runChunk",
+        "key": "ctrl+enter",
+        "mac": "cmd+enter",
+        "when": "editorTextFocus && resourceExtname == .qmd"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.106.1",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "typescript-eslint": "^8.46.3",
+    "eslint": "^9.39.1",
+    "typescript": "^5.9.3",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2"
+  }
+}
