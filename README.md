@@ -152,19 +152,36 @@ See [docs/plans/2025-11-22-quarto-inline-output.md](docs/plans/2025-11-22-quarto
 ## Roadmap
 
 - [x] Project design and planning
-- [ ] MVP: R text output support
+- [x] MVP: R text output support (v0.1.0 - hover-based, see `inline-with-hover` branch)
+- [x] Notebook API implementation (v0.2.0 - current)
 - [ ] R plot support
-- [ ] Enhanced output formatting
 - [ ] Python support
+- [ ] Enhanced output formatting
 - [ ] Configuration UI
 - [ ] Marketplace publication
+
+## Current Status (v0.2.0)
+
+The extension now uses VSCode's Notebook API to provide true inline output display, similar to Jupyter notebooks. This replaces the earlier hover-based approach.
+
+**Implemented:**
+- Notebook serializer for `.qmd` ↔ notebook cells conversion
+- Notebook controller for cell execution via terminal
+- View switching between text and notebook modes
+- Chunk option preservation in cell metadata
+- Clean round-tripping (outputs not saved to files)
+
+**Next Steps:**
+- Add plot output support using custom renderers
+- Extend to Python language support
+- Improve chunk options UI in notebook view
 
 ## Known Limitations
 
 - Currently supports R only (Python planned)
-- Plot display is basic (no interactive zoom, pan)
-- Limited chunk option support (fig.width, etc.)
-- Terminal output parsing is simple (may miss some edge cases)
+- Plot output not yet supported (text output only)
+- Chunk options must be edited in text view
+- Terminal-based execution only (no background execution)
 
 ## License
 
