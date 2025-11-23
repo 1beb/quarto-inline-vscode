@@ -1,0 +1,75 @@
+---
+title: "GT Tables Test"
+format: html
+---
+
+## Testing Rich HTML Output with gt
+
+This document tests the new pseudoterminal implementation that captures rich HTML output without showing instrumentation code in the terminal.
+
+### Install and Load gt
+
+```{r}
+if (!require("gt")) {
+  install.packages("gt")
+}
+library(gt)
+```
+
+### Basic gt Table
+
+```{r}
+# Create a simple gt table
+mtcars[1:5, 1:5] |>
+  gt()
+```
+
+### Styled gt Table
+
+```{r}
+# Create a styled gt table with formatting
+mtcars[1:8, ] |>
+  gt(rownames_to_stub = TRUE) |>
+  tab_header(
+    title = "Motor Trend Car Road Tests",
+    subtitle = "A selection of cars from the 1974 Motor Trend US magazine"
+  ) |>
+  tab_stubhead(label = "Car Model")
+```
+
+### Styled gt Table with Colors
+
+```{r}
+# Create a styled gt table with column formatting
+library(gt)
+mtcars[1:6, 1:6] |>
+  gt() |>
+  tab_header(
+    title = "Motor Trend Cars",
+    subtitle = "Performance Metrics"
+  ) |>
+  tab_style(
+    style = cell_fill(color = "lightblue"),
+    locations = cells_body(columns = mpg)
+  )
+```
+
+### Testing Text Output Still Works
+
+```{r}
+# Regular text output should still work
+summary(mtcars$mpg)
+```
+
+```{r}
+# Data frame output
+head(mtcars, 3)
+```
+
+### Mixed Output
+
+```{r}
+# Print text then create table
+cat("Here's a table created with gt:\n")
+iris[1:5, ] |> gt()
+```
