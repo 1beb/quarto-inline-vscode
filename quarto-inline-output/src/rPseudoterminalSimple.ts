@@ -115,8 +115,9 @@ options(scipen=999)
     dev_id <- dev.cur()
     tryCatch({
         result <- eval(code_expr)
-        # Explicitly print the result to render ggplot objects
-        if (!is.null(result)) {
+        # Only print ggplot objects (they need explicit printing to render)
+        # Base R plots render automatically and return objects we don't want to print
+        if (!is.null(result) && inherits(result, c("ggplot", "gg"))) {
             print(result)
         }
         if (dev.cur() == dev_id) {
