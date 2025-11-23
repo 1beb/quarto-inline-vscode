@@ -30,3 +30,28 @@ boxplot(mpg ~ cyl, data = mtcars,
         main = "MPG by Cylinder Count",
         col = c("lightblue", "lightgreen", "lightcoral"))
 ```
+
+## ggplot2 Examples
+
+```{r}
+library(ggplot2)
+
+# Simple ggplot scatter plot
+ggplot(mtcars, aes(x = wt, y = mpg)) +
+  geom_point(aes(color = factor(cyl)), size = 3) +
+  labs(title = "MPG vs Weight by Cylinder",
+       x = "Weight (1000 lbs)",
+       y = "Miles per Gallon",
+       color = "Cylinders") +
+  theme_minimal()
+```
+
+```{r}
+# ggplot bar plot
+ggplot(mtcars, aes(x = factor(cyl))) +
+  geom_bar(fill = "steelblue") +
+  labs(title = "Count of Cars by Cylinder",
+       x = "Number of Cylinders",
+       y = "Count") +
+  theme_minimal()
+```

@@ -1,13 +1,13 @@
 import * as vscode from 'vscode';
-import { TerminalManager } from './terminalManager';
-import { RExecutor } from './executors/rExecutor';
+import { PseudoterminalManager } from './pseudoterminalManager';
+import { OutputData } from './rPseudoterminalSimple';
 
 export class QuartoNotebookController {
     private controller: vscode.NotebookController;
-    private terminalManager: TerminalManager;
+    private pseudoterminalManager: PseudoterminalManager;
 
-    constructor(terminalManager: TerminalManager) {
-        this.terminalManager = terminalManager;
+    constructor(pseudoterminalManager: PseudoterminalManager) {
+        this.pseudoterminalManager = pseudoterminalManager;
 
         this.controller = vscode.notebooks.createNotebookController(
             'quarto-notebook-controller',
@@ -22,48 +22,82 @@ export class QuartoNotebookController {
 
     private async executeCell(
         cells: vscode.NotebookCell[],
-        _notebook: vscode.NotebookDocument,
+        notebook: vscode.NotebookDocument,
         _controller: vscode.NotebookController
     ): Promise<void> {
         for (const cell of cells) {
-            await this.executeSingleCell(cell);
+            await this.executeSingleCell(cell, notebook);
         }
     }
 
-    private async executeSingleCell(cell: vscode.NotebookCell): Promise<void> {
+    private async executeSingleCell(cell: vscode.NotebookCell, notebook: vscode.NotebookDocument): Promise<void> {
         const execution = this.controller.createNotebookCellExecution(cell);
         execution.start(Date.now());
         execution.clearOutput();
 
         try {
-            // Get terminal for this language
-            const terminal = this.terminalManager.getOrCreateTerminal(cell.document.languageId);
+            // Get workspace folder for this notebook
+            const workspaceFolder = vscode.workspace.getWorkspaceFolder(notebook.uri)?.uri.fsPath;
 
-            // Create executor
-            const executor = new RExecutor(terminal);
+            // Get pseudoterminal for this language
+            const { terminal, pty } = this.pseudoterminalManager.getOrCreatePseudoterminal(
+                cell.document.languageId,
+                workspaceFolder
+            );
 
-            try {
-                // Execute code
-                const result = await executor.executeChunk({
-                    code: cell.document.getText(),
-                    options: {}
-                });
+            // Show terminal so user can see execution
+            terminal.show(true); // preserveFocus = true
 
-                // Update cell output
-                if (result.textOutput) {
-                    const output = new vscode.NotebookCellOutput([
-                        vscode.NotebookCellOutputItem.text(result.textOutput)
-                    ]);
-                    execution.replaceOutput(output);
+            // Execute code using the pseudoterminal
+            const outputs = await pty.executeCode(cell.document.getText());
+
+            // Process outputs and create appropriate NotebookCellOutputItems
+            const cellOutputs: vscode.NotebookCellOutput[] = [];
+
+            for (const output of outputs) {
+                let outputItems: vscode.NotebookCellOutputItem[] = [];
+
+                switch (output.type) {
+                    case 'text':
+                        outputItems.push(
+                            vscode.NotebookCellOutputItem.text(output.content, 'text/plain')
+                        );
+                        break;
+
+                    case 'html':
+                        // Support for HTML output (gt tables, htmlwidgets, etc.)
+                        outputItems.push(
+                            vscode.NotebookCellOutputItem.text(output.content, 'text/html')
+                        );
+                        break;
+
+                    case 'error':
+                        outputItems.push(
+                            vscode.NotebookCellOutputItem.error(new Error(output.content))
+                        );
+                        break;
+
+                    case 'image':
+                        // Display image from base64 data
+                        const imageBuffer = Buffer.from(output.content, 'base64');
+                        outputItems.push(
+                            new vscode.NotebookCellOutputItem(imageBuffer, 'image/png')
+                        );
+                        break;
                 }
 
-                execution.end(true, Date.now());
-            } finally {
-                // Clean up executor resources
-                if (executor && 'dispose' in executor) {
-                    executor.dispose();
+                if (outputItems.length > 0) {
+                    cellOutputs.push(new vscode.NotebookCellOutput(outputItems));
                 }
             }
+
+            // Replace all outputs at once
+            if (cellOutputs.length > 0) {
+                execution.replaceOutput(cellOutputs);
+            }
+
+            execution.end(true, Date.now());
+
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             const errorOutput = new vscode.NotebookCellOutput([
