@@ -1,21 +1,18 @@
 import * as vscode from 'vscode';
 import { QuartoCodeLensProvider } from './codeLensProvider';
-import { PseudoterminalManager } from './pseudoterminalManager';
 import { DecorationManager } from './decorationManager';
-import { RExecutor } from './executors/rExecutor';
 import { CodeChunk } from './chunkParser';
 import { QuartoNotebookSerializer } from './notebookSerializer';
 import { QuartoNotebookController } from './notebookController';
 
-let pseudoterminalManager: PseudoterminalManager;
 let decorationManager: DecorationManager;
 let codeLensProvider: QuartoCodeLensProvider;
+let notebookController: QuartoNotebookController;
 
 export function activate(context: vscode.ExtensionContext) {
-    console.log('Quarto Inline Output extension is now active');
+    console.log('Quarto Inline Output extension is now active (file-based IPC mode)');
 
     // Initialize managers
-    pseudoterminalManager = new PseudoterminalManager();
     decorationManager = new DecorationManager();
     codeLensProvider = new QuartoCodeLensProvider();
 
@@ -29,8 +26,8 @@ export function activate(context: vscode.ExtensionContext) {
         )
     );
 
-    // Register notebook controller
-    const notebookController = new QuartoNotebookController(pseudoterminalManager);
+    // Register notebook controller (uses default terminal + file-based output capture)
+    notebookController = new QuartoNotebookController();
     context.subscriptions.push(notebookController);
 
     // Register code lens provider for .qmd files
@@ -39,11 +36,13 @@ export function activate(context: vscode.ExtensionContext) {
         codeLensProvider
     );
 
-    // Register run chunk command
+    // Register run chunk command (simplified for now - uses notebook execution)
     const runChunkCommand = vscode.commands.registerCommand(
         'quarto-inline-output.runChunk',
         async (chunk: CodeChunk) => {
-            await runChunk(chunk);
+            vscode.window.showInformationMessage(
+                'Run chunk from text editor not yet supported in file-IPC mode. Open as notebook to execute.'
+            );
         }
     );
 
@@ -120,73 +119,13 @@ export function activate(context: vscode.ExtensionContext) {
         openAsNotebookCommand,
         openAsTextCommand,
         changeDisposable,
-        { dispose: () => pseudoterminalManager.dispose() },
         { dispose: () => decorationManager.dispose() }
     );
 }
 
-async function runChunk(chunk: CodeChunk): Promise<void> {
-    const editor = vscode.window.activeTextEditor;
-    if (!editor) {
-        vscode.window.showErrorMessage('No active editor found');
-        return;
-    }
-
-    try {
-        // Get workspace folder
-        const workspaceFolder = vscode.workspace.getWorkspaceFolder(editor.document.uri)?.uri.fsPath;
-
-        // Get pseudoterminal for this language
-        const { terminal, pty } = pseudoterminalManager.getOrCreatePseudoterminal(
-            chunk.language,
-            workspaceFolder
-        );
-
-        // Show terminal
-        terminal.show(true);
-
-        // Execute code using pseudoterminal
-        const outputs = await pty.executeCode(chunk.code);
-
-        // Process outputs for decoration display
-        let textOutput = '';
-        let htmlOutput = '';
-
-        for (const output of outputs) {
-            switch (output.type) {
-                case 'text':
-                    textOutput += output.content + '\n';
-                    break;
-                case 'html':
-                    htmlOutput += output.content;
-                    break;
-                case 'error':
-                    textOutput += 'Error: ' + output.content + '\n';
-                    break;
-            }
-        }
-
-        // Display output (decorations API doesn't support HTML yet, so we show text summary)
-        if (htmlOutput) {
-            textOutput += '[HTML output generated - view in notebook mode for full rendering]';
-        }
-
-        decorationManager.setChunkOutput(
-            editor,
-            chunk.endLine,
-            textOutput.trim(),
-            [] // plots not yet supported in decoration mode
-        );
-
-    } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        vscode.window.showErrorMessage(`Failed to execute chunk: ${message}`);
-    }
-}
-
 export function deactivate() {
-    if (pseudoterminalManager) {
-        pseudoterminalManager.dispose();
+    if (notebookController) {
+        notebookController.dispose();
     }
     if (decorationManager) {
         decorationManager.dispose();
