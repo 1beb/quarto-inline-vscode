@@ -22,6 +22,7 @@ export class OutputWatcher {
     private plotDir: string;
     private watcher: fs.FSWatcher | null = null;
     private lastPosition: number = 0;
+    private pendingContent: string = '';  // Accumulate incomplete blocks
     private cellOutputs: Map<string, CellOutput[]> = new Map();
     private cellCallbacks: Map<string, (outputs: CellOutput[]) => void> = new Map();
     private defaultYamlOptions: YamlOptions = {
@@ -55,6 +56,7 @@ export class OutputWatcher {
         }
         fs.writeFileSync(this.outputFile, '');
         this.lastPosition = 0;
+        this.pendingContent = '';
 
         // Use polling instead of fs.watch (more reliable on Linux)
         this.pollInterval = setInterval(() => {
@@ -119,20 +121,22 @@ export class OutputWatcher {
             const newContent = content.slice(this.lastPosition);
             this.lastPosition = content.length;
 
-            if (!newContent.trim()) return;
+            if (!newContent) return;
 
-            console.log('OutputWatcher: New content detected, length:', newContent.length);
-            console.log('OutputWatcher: Content preview:', newContent.substring(0, 200));
+            // Accumulate with pending content from previous incomplete reads
+            this.pendingContent += newContent;
+
+            if (!this.pendingContent.trim()) return;
 
             // Parse output blocks
             // Format: ###TYPE:CELL_ID###\nCONTENT\n###END###
             const blockRegex = /###(\w+):([^#]+)###\n([\s\S]*?)\n###END###/g;
             let match;
-            let matchCount = 0;
+            let lastMatchEnd = 0;
 
-            while ((match = blockRegex.exec(newContent)) !== null) {
-                matchCount++;
-                const [, type, cellId, blockContent] = match;
+            while ((match = blockRegex.exec(this.pendingContent)) !== null) {
+                const [fullMatch, type, cellId, blockContent] = match;
+                lastMatchEnd = match.index + fullMatch.length;
                 console.log('OutputWatcher: Parsed block - type:', type, 'cellId:', cellId);
 
                 const output: CellOutput = {
@@ -161,8 +165,9 @@ export class OutputWatcher {
                 }
             }
 
-            if (matchCount === 0 && newContent.includes('###')) {
-                console.log('OutputWatcher: Content has ### but no regex matches. Raw content:', JSON.stringify(newContent));
+            // Keep only unparsed content (incomplete blocks)
+            if (lastMatchEnd > 0) {
+                this.pendingContent = this.pendingContent.slice(lastMatchEnd);
             }
         } catch (error) {
             console.error('Error processing output:', error);

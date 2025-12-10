@@ -158,7 +158,7 @@ globalCallingHandlers(
         out <- capture.output(result <- withVisible(eval(expr, envir = globalenv())))
         if (length(out) > 0 && any(nzchar(out))) { .quarto_inline$write_output("OUTPUT", paste(out, collapse = "\\n"), cell_id); cat(out, sep = "\\n") }
         if (result$visible && !is.null(result$value)) {
-          if (inherits(result$value, "gt_tbl") && requireNamespace("gt", quietly = TRUE)) { .quarto_inline$write_output("HTML", as.character(gt::as_raw_html(result$value)), cell_id); print(result$value) }
+          if (inherits(result$value, "gt_tbl") && requireNamespace("gt", quietly = TRUE)) { .quarto_inline$write_output("HTML", as.character(gt::as_raw_html(result$value)), cell_id); cat("[gt table rendered inline]\\n") }
           else if (inherits(result$value, "htmlwidget") && requireNamespace("htmlwidgets", quietly = TRUE)) { f <- tempfile(fileext = ".html"); htmlwidgets::saveWidget(result$value, f, selfcontained = TRUE); .quarto_inline$write_output("HTML", paste(readLines(f), collapse = "\\n"), cell_id); unlink(f) }
           else if (length(out) == 0) { out2 <- capture.output(print(result$value)); if (length(out2) > 0) { .quarto_inline$write_output("OUTPUT", paste(out2, collapse = "\\n"), cell_id); cat(out2, sep = "\\n") } }
         }

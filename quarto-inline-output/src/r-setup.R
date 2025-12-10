@@ -89,7 +89,7 @@ globalCallingHandlers(
               html <- as.character(gt::as_raw_html(result$value))
               .quarto_inline$write_output("HTML", html, cell_id)
             }
-            print(result$value)  # Text to terminal
+            cat("[gt table rendered inline]\n")  # Don't print() - it opens browser
 
           } else if (inherits(result$value, "htmlwidget")) {
             # HTML widget
