@@ -1,14 +1,47 @@
+
 # Quarto Inline Output
 
-Display code chunk outputs inline in Quarto documents, similar to Jupyter notebooks in VSCode.
+Display code chunk outputs inline in Quarto documents, similar to Jupyter notebooks in VSCode, but with a functional R terminal session. 
+
+## Motivation
+
+RStudio's execution model is fantastic for iterative and interactive workflows where you need to be able to work with stateful data outside of the context your notebook. This is especially useful for data exploration and social science modeling contexts where the development loop is short and focused on outputs. 
+
+Positron is a great tool but it does not support inline chunk output - that means you have to look at your console output "outside of the weave" of your notebook. 
+
+This plugin for vscode provides a trade-off, it evaluates chunks inside of some instrumentation code in exchange for inline outputs.
 
 ## Features
 
-- **Inline Output Display**: Run R code chunks and see results directly below, just like in RStudio
-- **Visual Results**: Text output, plots, and tables rendered inline in your Quarto document
-- **Interactive Terminal**: Execute chunks in a visible terminal session that maintains state
-- **Jupyter-style UX**: Click "▶ Run" buttons or use `Cmd/Ctrl+Enter` to execute chunks
-- **Language Support**: R (MVP), Python (planned)
+- Inline Output Display: Run R code chunks and see results directly below, just like in RStudio
+- Visual Results: Text output, plots, and tables rendered inline in your Quarto document. Support for ggplot2, gt, prints/mesage and base R plots.
+- Interactive Terminal: Execute chunks in a visible terminal session that maintains state
+- Jupyter-style UX: Click "▶ Run" buttons or use `Cmd/Ctrl+Enter` to execute chunks. Reloads last visible outputs like Jupyter  
+- Supports R (MVP), Python (planned)
+- Respects mesage: t/f setting for Quarto
+
+### Screenshots
+
+<details open>
+<summary><strong>R Plots</strong></summary>
+
+![R Plots - inline visualization of ggplot2 and base R graphics](docs/images/r-plots.png)
+
+</details>
+
+<details>
+<summary><strong>R GT Tables</strong></summary>
+
+![R GT Tables - rich HTML table output from the gt package](docs/images/r-gt-tables.png)
+
+</details>
+
+<details>
+<summary><strong>R Summary</strong></summary>
+
+![R Summary - text output from print and summary functions](docs/images/r-summary.png)
+
+</details>
 
 ## Why This Extension?
 
@@ -30,7 +63,7 @@ This is a [known limitation](https://github.com/quarto-dev/quarto-cli/discussion
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/yourusername/quarto-inline-output.git
+   git clone https://github.com/1beb/quarto-inline-output.git
    cd quarto-inline-output
    ```
 

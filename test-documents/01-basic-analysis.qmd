@@ -1,11 +1,19 @@
 ---
 title: "Basic mtcars Analysis"
 format: html
+echo: false
+message: false
 ---
 
 ## Introduction
 
 Basic exploration of the mtcars dataset.
+
+```{r}
+library(tidyverse)
+library(arrow)
+library(mgcv)
+```
 
 ```{r}
 # Load and examine the mtcars dataset
