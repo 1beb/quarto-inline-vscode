@@ -9,7 +9,9 @@ RStudio's execution model is fantastic for iterative and interactive workflows w
 
 Positron is a great tool but it does not support inline chunk output - that means you have to look at your console output "outside of the weave" of your notebook. 
 
-This plugin for vscode provides a trade-off, it evaluates chunks inside of some instrumentation code in exchange for inline outputs.
+This is a [known limitation](https://github.com/quarto-dev/quarto-cli/discussions/3598) of the Quarto VSCode extension. This extension bridges that gap.
+
+This plugin for vscode provides a trade-off, it evaluates chunks inside of some instrumentation code in exchange for inline outputs and an interactive shell.
 
 ## Features
 
@@ -22,34 +24,10 @@ This plugin for vscode provides a trade-off, it evaluates chunks inside of some 
 
 ### Screenshots
 
-<details open>
-<summary><strong>R Plots</strong></summary>
+![Screenshots showing R Plots, GT Tables, and Summary output](docs/images/screenshots.gif)
 
-![R Plots - inline visualization of ggplot2 and base R graphics](docs/images/r-plots.png)
 
-</details>
 
-<details>
-<summary><strong>R GT Tables</strong></summary>
-
-![R GT Tables - rich HTML table output from the gt package](docs/images/r-gt-tables.png)
-
-</details>
-
-<details>
-<summary><strong>R Summary</strong></summary>
-
-![R Summary - text output from print and summary functions](docs/images/r-summary.png)
-
-</details>
-
-## Why This Extension?
-
-Quarto documents in VSCode currently lack inline output display:
-- **RStudio**: Output appears directly below chunks
-- **VSCode**: Output only shows in terminal, no inline visualization
-
-This is a [known limitation](https://github.com/quarto-dev/quarto-cli/discussions/3598) of the Quarto VSCode extension. This extension bridges that gap.
 
 ## Requirements
 
@@ -152,14 +130,20 @@ State persists between chunk executions, so variables and loaded packages remain
 ```
 quarto-inline-output/
 ├── src/
-│   ├── extension.ts          # Entry point
-│   ├── chunkParser.ts        # Parse code chunks
-│   ├── codeLensProvider.ts   # Run buttons
-│   ├── executors/            # Language executors
-│   ├── decorationManager.ts  # Inline rendering
-│   └── terminalManager.ts    # Terminal management
-├── test-documents/           # Test .qmd files
-└── docs/plans/              # Implementation plans
+│   ├── extension.ts           # Entry point
+│   ├── chunkParser.ts         # Parse code chunks from .qmd
+│   ├── codeLensProvider.ts    # Run buttons above chunks
+│   ├── notebookSerializer.ts  # .qmd ↔ notebook conversion
+│   ├── notebookController.ts  # Cell execution via terminal
+│   ├── outputWatcher.ts       # File-based IPC for output capture
+│   ├── r-setup.R              # R instrumentation code
+│   ├── decorationManager.ts   # Inline rendering
+│   ├── executors/             # Language executors
+│   └── test/                  # Unit tests
+├── test-documents/            # Sample .qmd files
+└── docs/
+    ├── plans/                 # Implementation plans
+    └── images/                # Screenshots
 ```
 
 ### Building from Source
@@ -187,34 +171,13 @@ See [docs/plans/2025-11-22-quarto-inline-output.md](docs/plans/2025-11-22-quarto
 - [x] Project design and planning
 - [x] MVP: R text output support (v0.1.0 - hover-based, see `inline-with-hover` branch)
 - [x] Notebook API implementation (v0.2.0 - current)
-- [ ] R plot support
+- [x] R plot support
+- [x] ggpl2 support
+- [x] gt() support
 - [ ] Python support
 - [ ] Enhanced output formatting
 - [ ] Configuration UI
 - [ ] Marketplace publication
-
-## Current Status (v0.2.0)
-
-The extension now uses VSCode's Notebook API to provide true inline output display, similar to Jupyter notebooks. This replaces the earlier hover-based approach.
-
-**Implemented:**
-- Notebook serializer for `.qmd` ↔ notebook cells conversion
-- Notebook controller for cell execution via terminal
-- View switching between text and notebook modes
-- Chunk option preservation in cell metadata
-- Clean round-tripping (outputs not saved to files)
-
-**Next Steps:**
-- Add plot output support using custom renderers
-- Extend to Python language support
-- Improve chunk options UI in notebook view
-
-## Known Limitations
-
-- Currently supports R only (Python planned)
-- Plot output not yet supported (text output only)
-- Chunk options must be edited in text view
-- Terminal-based execution only (no background execution)
 
 ## License
 
@@ -226,3 +189,5 @@ Inspired by:
 - RStudio's inline chunk execution
 - Jupyter notebook extension for VSCode
 - Quarto development team's work on VSCode integration
+
+This was made with Claude Code using the absolutely wonderful and socratic  [Superpowers](https://github.com/obra/superpowers) plugin/skill.
